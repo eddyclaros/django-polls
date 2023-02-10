@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.views import generic
 
 from polls.models import Question, Choice
+from django.utils import timezone
 
 # def index(request):
 #     latest_question_list = Question.objects.all()
@@ -33,7 +34,7 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """ Return the last five published questions""" 
-        return Question.objects.order_by("-pub_date")[:5]
+        return Question.objects.filter(pub_date__lte = timezone.now()).order_by("-pub_date")[:5]
 
 
 class DetailView(generic.DetailView):
@@ -63,14 +64,4 @@ def vote(request,question_id):
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
         
 
-
-
-
-# class IndexView(generic.ListView):
-#     template_name = "polls/index.html"
-#     context_object_name = "latest_question_list"
-
-#     def get_queryset(self):
-#         """ return the last five published questions """
-#         return Question.objects.filter("-pub_date")[:5]
 
