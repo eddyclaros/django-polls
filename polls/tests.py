@@ -69,6 +69,58 @@ class QuestionIndexViewTests(TestCase):
         self.assertQuerysetEqual(response.context["latest_question_list"],[question])
 
 
+    def test_futura_question_and_past_question(self):
+        """
+        Even if both past and future question exist, only past question are displayed
+        """
+        past_question = create_question(question_text="Past Question", days=-30)
+        future_question = create_question(question_text="Past Question", days=30)
+        response = self.client.get(reverse("polls:index"))
+        self.assertQuerysetEqual(response.context["latest_question_list"],[past_question])
+
+        
+
+    def test_two_past_questions(self):
+        """
+        the questions index page may display multiple questions
+        """
+        past_question1 = create_question(question_text="Past Question 1", days=-30)
+        past_question2 = create_question(question_text="Past Question 2", days=-35)
+        response = self.client.get(reverse("polls:index"))
+        self.assertQuerysetEqual(response.context["latest_question_list"],[past_question1,past_question2])
+    
+    def test_two_future_questions(self):
+        """ 
+        the question index plage may not display many future questions
+        """
+        future_question1 = create_question(question_text="Future Question 1", days=30)
+        future_question2 = create_question(question_text="Future Question 2", days=35)
+        response = self.client.get(reverse("polls:index"))
+        self.assertQuerysetEqual(response.context["latest_question_list"],[])
+    
+
+class QuestionDetailViewTest(TestCase):
+    def test_future_question(self):
+        """
+        The detail view of a question with a pub_date in the future returns a 404 error not found
+        """
+        future_question = create_question(question_text="Future Question", days=30)
+        url = reverse("polls:detail", args=(future_question.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+
+
+    def test_past_quetion(self):
+        """
+        The detail view of a question with a pub_date in the past displays the question's text
+        """
+        past_question = create_question(question_text="Past Question", days=-30)
+        url = reverse("polls:detail", args=(past_question.id,))
+        response = self.client.get(url)
+        self.assertContains(response,past_question.question_text)
+
 
 
 
